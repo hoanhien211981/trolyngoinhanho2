@@ -55,7 +55,7 @@ ${context}
 
         const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
 			const payload = {
-				model: "openchat/openchat-3.5",
+				model: "nousresearch/nous-hermes-2-mixtral",
 				messages: [
 					{ role: "system", content: systemPrompt },
 					{ role: "user", content: question }
