@@ -30,27 +30,21 @@ const XAI_API_KEY = process.env.XAI_API_KEY;
 // --- 5. Định nghĩa một Route (API Endpoint) ---
 // Frontend sẽ gửi yêu cầu POST đến '/api/chat'
 app.post('/api/chat', async (req, res) => {
-    // Kiểm tra xem API key đã được cấu hình trên server chưa
-    if (!GEMINI_API_KEY) {
-        return res.status(500).json({ 
-            error: 'GEMINI_API_KEY chưa được cấu hình trên server.' 
+    if (!XAI_API_KEY) {
+        return res.status(500).json({
+            error: 'XAI_API_KEY chưa được cấu hình trên server.'
         });
     }
 
     try {
-        // Lấy câu hỏi và context từ body của request mà frontend gửi lên
         const { question, context } = req.body;
 
         if (!question || !context) {
-            return res.status(400).json({ 
-                error: 'Vui lòng cung cấp đủ "question" và "context".' 
+            return res.status(400).json({
+                error: 'Vui lòng cung cấp đủ "question" và "context".'
             });
         }
 
-        const model = "gemini-2.0-flash";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-
-        // Tạo prompt giống hệt như trong file HTML của bạn
         const prompt = `Bạn là một trợ lý AI chuyên gia về tra cứu thông tin. Nhiệm vụ của bạn là tìm câu trả lời cho câu hỏi của người dùng CHỈ từ trong VĂN BẢN NGUỒN được cung cấp.
 
 **QUY TẮC BẮT BUỘC PHẢI TUÂN THEO:**
@@ -69,31 +63,26 @@ Câu hỏi của người dùng: ${question}
 
 Câu trả lời của bạn:`;
 
-        const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-                temperature: 0.0,
-                topK: 1,
-                topP: 1,
-                maxOutputTokens: 2048,
+        const response = await axios.post('https://api.xai.com/v1/chat/completions', {
+            model: "grok-1",
+            messages: [
+                { role: "user", content: prompt }
+            ],
+            stream: false
+        }, {
+            headers: {
+                'Authorization': `Bearer ${XAI_API_KEY}`,
+                'Content-Type': 'application/json'
             }
-        };
-
-        // Gửi yêu cầu đến Google Gemini API bằng axios
-        const response = await axios.post(apiUrl, payload, {
-            headers: { 'Content-Type': 'application/json' }
         });
 
-        // Trích xuất câu trả lời từ phản hồi của Google
-        const answer = response.data.candidates[0]?.content?.parts[0]?.text || "Không nhận được câu trả lời hợp lệ từ AI.";
-        
-        // Gửi câu trả lời về lại cho frontend
+        const answer = response.data.choices?.[0]?.message?.content || "Không có phản hồi hợp lệ từ xAI.";
         res.json({ answer });
 
     } catch (error) {
-        console.error('Lỗi khi gọi Google Gemini API:', error.response ? error.response.data : error.message);
-        res.status(500).json({ 
-            error: 'Đã có lỗi xảy ra phía server khi xử lý yêu cầu của bạn.' 
+        console.error('Lỗi khi gọi xAI API:', error.response ? error.response.data : error.message);
+        res.status(500).json({
+            error: 'Đã có lỗi xảy ra phía server khi xử lý yêu cầu của bạn.'
         });
     }
 });
