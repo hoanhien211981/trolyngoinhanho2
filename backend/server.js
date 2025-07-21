@@ -55,7 +55,7 @@ ${context}
 
         const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
         const payload = {
-            model: "nousresearch/nous-hermes-2-mixtral",
+            model: "openchat/openchat-3.5"
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: question }
@@ -64,14 +64,15 @@ ${context}
             max_tokens: 2048
         };
 
-        const response = await axios.post(apiUrl, payload, {
-            headers: {
-                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': 'http://localhost:3000', // Thay bằng domain thật nếu có
-                'X-Title': 'doc-ai-chat'
-            }
-        });
+			const response = await axios.post(apiUrl, payload, {
+				timeout: 20000, // Thêm timeout 20 giây
+				headers: {
+					'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+					'Content-Type': 'application/json',
+					'HTTP-Referer': 'http://localhost:3000', // hoặc domain thật của bạn
+					'X-Title': 'doc-ai-chat'
+				}
+			});
 
         const answer = response.data.choices[0]?.message?.content || "Không nhận được câu trả lời hợp lệ từ AI.";
         res.json({ answer });
