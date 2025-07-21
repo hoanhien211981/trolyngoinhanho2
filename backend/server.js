@@ -25,14 +25,12 @@ app.get('/api/health', (req, res) => {
 // --- 4. Lấy API Key từ biến môi trường ---
 // Đây là cách an toàn để quản lý API Key.
 // Chúng ta sẽ thiết lập biến này trên Render sau.
-const XAI_API_KEY = process.env.XAI_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
-// --- 5. Định nghĩa một Route (API Endpoint) ---
-// Frontend sẽ gửi yêu cầu POST đến '/api/chat'
 app.post('/api/chat', async (req, res) => {
-    if (!XAI_API_KEY) {
+    if (!GROQ_API_KEY) {
         return res.status(500).json({
-            error: 'XAI_API_KEY chưa được cấu hình trên server.'
+            error: 'GROQ_API_KEY chưa được cấu hình trên server.'
         });
     }
 
@@ -63,26 +61,27 @@ Câu hỏi của người dùng: ${question}
 
 Câu trả lời của bạn:`;
 
-        const response = await axios.post('https://api.xai.com/v1/chat/completions', {
-            model: "grok-1",
+        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+            model: "llama3-70b-8192",  // hoặc llama3-8b-8192
             messages: [
                 { role: "user", content: prompt }
             ],
-            stream: false
+            temperature: 0.0,
+            max_tokens: 2048
         }, {
             headers: {
-                'Authorization': `Bearer ${XAI_API_KEY}`,
+                'Authorization': `Bearer ${GROQ_API_KEY}`,
                 'Content-Type': 'application/json'
             }
         });
 
-        const answer = response.data.choices?.[0]?.message?.content || "Không có phản hồi hợp lệ từ xAI.";
+        const answer = response.data.choices?.[0]?.message?.content || "Không có phản hồi hợp lệ từ Groq.";
         res.json({ answer });
 
     } catch (error) {
-        console.error('Lỗi khi gọi xAI API:', error.response ? error.response.data : error.message);
+        console.error('Lỗi khi gọi Groq API:', error.response?.data || error.message);
         res.status(500).json({
-            error: 'Đã có lỗi xảy ra phía server khi xử lý yêu cầu của bạn.'
+            error: 'Đã có lỗi xảy ra phía server khi xử lý yêu cầu từ Groq.'
         });
     }
 });
