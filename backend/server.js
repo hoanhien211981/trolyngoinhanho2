@@ -54,16 +54,15 @@ ${context}
         `;
 
         const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-        const payload = {
-            model: "openchat/openchat-3.5"
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: question }
-            ],
-            temperature: 0.0,
-            max_tokens: 2048
-        };
-
+			const payload = {
+				model: "openchat/openchat-3.5",
+				messages: [
+					{ role: "system", content: systemPrompt },
+					{ role: "user", content: question }
+				],
+				temperature: 0.0,
+				max_tokens: 2048
+			};
 			const response = await axios.post(apiUrl, payload, {
 				timeout: 20000, // Thêm timeout 20 giây
 				headers: {
