@@ -25,7 +25,7 @@ app.get('/api/health', (req, res) => {
 // --- 4. Lấy API Key từ biến môi trường ---
 // Đây là cách an toàn để quản lý API Key.
 // Chúng ta sẽ thiết lập biến này trên Render sau.
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const XAI_API_KEY = process.env.XAI_API_KEY;
 
 // --- 5. Định nghĩa một Route (API Endpoint) ---
 // Frontend sẽ gửi yêu cầu POST đến '/api/chat'
