@@ -25,60 +25,76 @@ app.get('/api/health', (req, res) => {
 // --- 4. Lấy API Key từ biến môi trường ---
 // Đây là cách an toàn để quản lý API Key.
 // Chúng ta sẽ thiết lập biến này trên Render sau.
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// --- 6. Route xử lý chat ---
+// --- 5. Định nghĩa một Route (API Endpoint) ---
+// Frontend sẽ gửi yêu cầu POST đến '/api/chat'
 app.post('/api/chat', async (req, res) => {
-    if (!OPENROUTER_API_KEY) {
-        return res.status(500).json({ error: 'OPENROUTER_API_KEY chưa được cấu hình trên server.' });
+    // Kiểm tra xem API key đã được cấu hình trên server chưa
+    if (!GEMINI_API_KEY) {
+        return res.status(500).json({ 
+            error: 'GEMINI_API_KEY chưa được cấu hình trên server.' 
+        });
     }
 
     try {
+        // Lấy câu hỏi và context từ body của request mà frontend gửi lên
         const { question, context } = req.body;
 
         if (!question || !context) {
-            return res.status(400).json({ error: 'Vui lòng cung cấp đủ "question" và "context".' });
+            return res.status(400).json({ 
+                error: 'Vui lòng cung cấp đủ "question" và "context".' 
+            });
         }
 
-        const systemPrompt = `
-Bạn là một trợ lý AI chuyên gia về tra cứu thông tin. Nhiệm vụ của bạn là tìm câu trả lời cho câu hỏi của người dùng CHỈ từ trong VĂN BẢN NGUỒN được cung cấp.
+        const model = "gemini-1.5-flash";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+
+        // Tạo prompt giống hệt như trong file HTML của bạn
+        const prompt = `Bạn là một trợ lý AI chuyên gia về tra cứu thông tin. Nhiệm vụ của bạn là tìm câu trả lời cho câu hỏi của người dùng CHỈ từ trong VĂN BẢN NGUỒN được cung cấp.
 
 **QUY TẮC BẮT BUỘC PHẢI TUÂN THEO:**
-1. CHỈ dùng thông tin trong VĂN BẢN NGUỒN. KHÔNG dùng kiến thức bên ngoài.
-2. Nếu không tìm thấy thông tin, trả lời đúng một câu: "Thông tin này không có trong tài liệu được cung cấp."
-3. Trích dẫn nguyên văn nếu có thể, không suy diễn.
+
+1.  **PHẠM VI TRẢ LỜI:** Chỉ được phép sử dụng thông tin có trong VĂN BẢN NGUỒN. TUYỆT ĐỐI KHÔNG được dùng kiến thức của riêng bạn hoặc thông tin từ bên ngoài.
+2.  **TRƯỜNG HỢP KHÔNG TÌM THẤY:** Nếu bạn đọc kỹ VĂN BẢN NGUỒN và không tìm thấy câu trả lời cho câu hỏi, bạn BẮT BUỘC phải trả lời bằng một câu duy nhất, chính xác là: "Thông tin này không có trong tài liệu được cung cấp." Không giải thích, không xin lỗi, không thêm bất cứ điều gì khác.
+3.  **TRÍCH DẪN TRỰC TIẾP:** Cố gắng trích dẫn câu trả lời càng gần với nguyên văn trong tài liệu càng tốt. Không suy diễn, không tóm tắt nếu không cần thiết.
 
 --- VĂN BẢN NGUỒN ---
 ${context}
---- HẾT VĂN BẢN NGUỒN ---
-        `;
+--- KẾT THÚC VĂN BẢN NGUỒN ---
 
-        const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-			const payload = {
-				model: "nousresearch/nous-hermes-2-mixtral",
-				messages: [
-					{ role: "system", content: systemPrompt },
-					{ role: "user", content: question }
-				],
-				temperature: 0.0,
-				max_tokens: 2048
-			};
-			const response = await axios.post(apiUrl, payload, {
-				timeout: 20000, // Thêm timeout 20 giây
-				headers: {
-					'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-					'Content-Type': 'application/json',
-					'HTTP-Referer': 'http://localhost:3000', // hoặc domain thật của bạn
-					'X-Title': 'doc-ai-chat'
-				}
-			});
+Dựa vào các quy tắc và ví dụ trên, hãy trả lời câu hỏi sau:
 
-        const answer = response.data.choices[0]?.message?.content || "Không nhận được câu trả lời hợp lệ từ AI.";
+Câu hỏi của người dùng: ${question}
+
+Câu trả lời của bạn:`;
+
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                temperature: 0.0,
+                topK: 1,
+                topP: 1,
+                maxOutputTokens: 2048,
+            }
+        };
+
+        // Gửi yêu cầu đến Google Gemini API bằng axios
+        const response = await axios.post(apiUrl, payload, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        // Trích xuất câu trả lời từ phản hồi của Google
+        const answer = response.data.candidates[0]?.content?.parts[0]?.text || "Không nhận được câu trả lời hợp lệ từ AI.";
+        
+        // Gửi câu trả lời về lại cho frontend
         res.json({ answer });
 
     } catch (error) {
-        console.error('Lỗi khi gọi OpenRouter API:', error.response?.data || error.message);
-        res.status(500).json({ error: 'Đã có lỗi xảy ra khi gọi mô hình AI.' });
+        console.error('Lỗi khi gọi Google Gemini API:', error.response ? error.response.data : error.message);
+        res.status(500).json({ 
+            error: 'Đã có lỗi xảy ra phía server khi xử lý yêu cầu của bạn.' 
+        });
     }
 });
 
