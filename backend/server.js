@@ -25,64 +25,60 @@ app.get('/api/health', (req, res) => {
 // --- 4. Lấy API Key từ biến môi trường ---
 // Đây là cách an toàn để quản lý API Key.
 // Chúng ta sẽ thiết lập biến này trên Render sau.
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
+// --- 6. Route xử lý chat ---
 app.post('/api/chat', async (req, res) => {
-    if (!GROQ_API_KEY) {
-        return res.status(500).json({
-            error: 'GROQ_API_KEY chưa được cấu hình trên server.'
-        });
+    if (!OPENROUTER_API_KEY) {
+        return res.status(500).json({ error: 'OPENROUTER_API_KEY chưa được cấu hình trên server.' });
     }
 
     try {
         const { question, context } = req.body;
 
         if (!question || !context) {
-            return res.status(400).json({
-                error: 'Vui lòng cung cấp đủ "question" và "context".'
-            });
+            return res.status(400).json({ error: 'Vui lòng cung cấp đủ "question" và "context".' });
         }
 
-        const prompt = `Bạn là một trợ lý AI chuyên gia về tra cứu thông tin. Nhiệm vụ của bạn là tìm câu trả lời cho câu hỏi của người dùng CHỈ từ trong VĂN BẢN NGUỒN được cung cấp.
+        const systemPrompt = `
+Bạn là một trợ lý AI chuyên gia về tra cứu thông tin. Nhiệm vụ của bạn là tìm câu trả lời cho câu hỏi của người dùng CHỈ từ trong VĂN BẢN NGUỒN được cung cấp.
 
 **QUY TẮC BẮT BUỘC PHẢI TUÂN THEO:**
-
-1.  **PHẠM VI TRẢ LỜI:** Chỉ được phép sử dụng thông tin có trong VĂN BẢN NGUỒN. TUYỆT ĐỐI KHÔNG được dùng kiến thức của riêng bạn hoặc thông tin từ bên ngoài.
-2.  **TRƯỜNG HỢP KHÔNG TÌM THẤY:** Nếu bạn đọc kỹ VĂN BẢN NGUỒN và không tìm thấy câu trả lời cho câu hỏi, bạn BẮT BUỘC phải trả lời bằng một câu duy nhất, chính xác là: "Thông tin này không có trong tài liệu được cung cấp." Không giải thích, không xin lỗi, không thêm bất cứ điều gì khác.
-3.  **TRÍCH DẪN TRỰC TIẾP:** Cố gắng trích dẫn câu trả lời càng gần với nguyên văn trong tài liệu càng tốt. Không suy diễn, không tóm tắt nếu không cần thiết.
+1. CHỈ dùng thông tin trong VĂN BẢN NGUỒN. KHÔNG dùng kiến thức bên ngoài.
+2. Nếu không tìm thấy thông tin, trả lời đúng một câu: "Thông tin này không có trong tài liệu được cung cấp."
+3. Trích dẫn nguyên văn nếu có thể, không suy diễn.
 
 --- VĂN BẢN NGUỒN ---
 ${context}
---- KẾT THÚC VĂN BẢN NGUỒN ---
+--- HẾT VĂN BẢN NGUỒN ---
+        `;
 
-Dựa vào các quy tắc và ví dụ trên, hãy trả lời câu hỏi sau:
-
-Câu hỏi của người dùng: ${question}
-
-Câu trả lời của bạn:`;
-
-        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "llama3-70b-8192",  // hoặc llama3-8b-8192
+        const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+        const payload = {
+            model: "nousresearch/nous-hermes-2-mixtral",
             messages: [
-                { role: "user", content: prompt }
+                { role: "system", content: systemPrompt },
+                { role: "user", content: question }
             ],
             temperature: 0.0,
             max_tokens: 2048
-        }, {
+        };
+
+        const response = await axios.post(apiUrl, payload, {
             headers: {
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'http://localhost:3000', // Thay bằng domain thật nếu có
+                'X-Title': 'doc-ai-chat'
             }
         });
 
-        const answer = response.data.choices?.[0]?.message?.content || "Không có phản hồi hợp lệ từ Groq.";
+        const answer = response.data.choices[0]?.message?.content || "Không nhận được câu trả lời hợp lệ từ AI.";
         res.json({ answer });
 
     } catch (error) {
-        console.error('Lỗi khi gọi Groq API:', error.response?.data || error.message);
-        res.status(500).json({
-            error: 'Đã có lỗi xảy ra phía server khi xử lý yêu cầu từ Groq.'
-        });
+        console.error('Lỗi khi gọi OpenRouter API:', error.response?.data || error.message);
+        res.status(500).json({ error: 'Đã có lỗi xảy ra khi gọi mô hình AI.' });
     }
 });
 
