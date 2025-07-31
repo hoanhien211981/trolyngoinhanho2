@@ -12,9 +12,6 @@
     <style>
         /* Tối ưu hóa cho di động: 
            Layout hiện được điều khiển hoàn toàn bởi các lớp tiện ích của Tailwind CSS.
-           Việc loại bỏ các quy tắc CSS tùy chỉnh cho `html` và `body` giúp layout
-           linh hoạt và ổn định hơn, đặc biệt là trên các trình duyệt di động khi
-           thanh địa chỉ ẩn/hiện.
         */
         body { 
             font-family: 'Be Vietnam Pro', sans-serif; 
@@ -41,10 +38,11 @@
 <body class="text-stone-800">
 
     <!-- Container chính chiếm toàn bộ màn hình và điều khiển layout -->
-    <!-- `h-screen` làm cho nó cao bằng màn hình -->
+    <!-- `h-dvh` (dynamic viewport height) được sử dụng thay cho `h-screen` để xử lý -->
+    <!-- vấn đề thay đổi chiều cao màn hình trên mobile khi thanh địa chỉ hoặc bàn phím xuất hiện. -->
     <!-- `flex flex-col` sắp xếp các phần tử con (header, main, footer) theo chiều dọc -->
     <!-- `overflow-hidden` ngăn không cho chính container này bị cuộn -->
-    <div class="w-screen h-screen flex flex-col bg-[#FDFDFD]/90 backdrop-blur-md overflow-hidden">
+    <div class="w-screen h-dvh flex flex-col bg-[#FDFDFD]/90 backdrop-blur-md overflow-hidden">
         
         <!-- Header của Chatbot -->
         <!-- `shrink-0` ngăn header bị co lại -->
