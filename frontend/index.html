@@ -10,18 +10,18 @@
     <!-- Sử dụng font Be Vietnam Pro, một font chữ hiện đại và dễ đọc -->
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS để đảm bảo layout full-screen ổn định và chống co giãn khi thanh địa chỉ ẩn/hiện trên mobile */
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            position: fixed;
-        }
+        /* Tối ưu hóa cho di động: 
+           Layout hiện được điều khiển hoàn toàn bởi các lớp tiện ích của Tailwind CSS.
+           Việc loại bỏ các quy tắc CSS tùy chỉnh cho `html` và `body` giúp layout
+           linh hoạt và ổn định hơn, đặc biệt là trên các trình duyệt di động khi
+           thanh địa chỉ ẩn/hiện.
+        */
         body { 
             font-family: 'Be Vietnam Pro', sans-serif; 
             background-color: #F5F5DC; /* Giữ lại màu nền cũ */
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23d2b48c' fill-opacity='0.1'%3E%3Cpath fill-rule='evenodd' d='M11 0l5 20H6l5-20zm42 31a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM0 72h40v4H0v-4zm0-8h31v4H0v-4zm20-16h20v4H20v-4zM0 56h40v4H0v-4zm0-8h20v4H0v-4zm0-8h11v4H0v-4zm0-8h31v4H0v-4zm0-8h40v4H0v-4zm0-8h20v4H0v-4z'/%3E%3C/g%3E%3C/svg%3E");
         }
+        
         /* Tùy chỉnh thanh cuộn cho đẹp hơn */
         #chat-messages::-webkit-scrollbar { width: 8px; }
         #chat-messages::-webkit-scrollbar-track { background: transparent; }
@@ -40,21 +40,28 @@
 </head>
 <body class="text-stone-800">
 
-    <!-- Container chính chiếm toàn bộ màn hình -->
+    <!-- Container chính chiếm toàn bộ màn hình và điều khiển layout -->
+    <!-- `h-screen` làm cho nó cao bằng màn hình -->
+    <!-- `flex flex-col` sắp xếp các phần tử con (header, main, footer) theo chiều dọc -->
+    <!-- `overflow-hidden` ngăn không cho chính container này bị cuộn -->
     <div class="w-screen h-screen flex flex-col bg-[#FDFDFD]/90 backdrop-blur-md overflow-hidden">
         
         <!-- Header của Chatbot -->
+        <!-- `shrink-0` ngăn header bị co lại -->
         <header class="text-center py-4 px-4 sm:px-6 border-b border-stone-200/80 shadow-sm shrink-0">
             <h1 class="text-2xl sm:text-3xl font-bold text-amber-800">TRỢ LÝ NGÔI NHÀ NHỎ</h1>
             <p class="text-stone-500 text-sm mt-1">Hỗ trợ các vấn đề về Ngôi Nhà Nhỏ và niệm Kinh</p>
         </header>
 
         <!-- Khu vực hiển thị tin nhắn -->
+        <!-- `flex-1` làm cho vùng này lấp đầy không gian còn lại -->
+        <!-- `overflow-y-auto` cho phép chỉ vùng này được cuộn theo chiều dọc -->
         <main id="chat-messages" class="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
             <!-- Tin nhắn sẽ được thêm bằng JavaScript -->
         </main>
 
         <!-- Khu vực nhập liệu -->
+        <!-- `shrink-0` ngăn footer bị co lại, cố định nó ở dưới cùng -->
         <footer class="p-3 sm:p-4 bg-white/70 border-t border-stone-200/80 shrink-0">
             <div class="flex items-center w-full max-w-4xl mx-auto bg-stone-100 rounded-xl p-2 shadow-inner">
                 <input type="text" id="user-input" placeholder="Đang tải tài liệu, vui lòng chờ..." class="flex-1 bg-transparent px-4 py-3 text-base sm:text-lg text-stone-800 placeholder-stone-500 focus:outline-none" autocomplete="off" disabled>
@@ -120,7 +127,7 @@
                 }
             }
 
-            // Sử dụng innerText để an toàn hơn, và thay thế \n bằng <br> để hiển thị xuống dòng
+            // Sử dụng innerHTML để hiển thị các thẻ <br> từ việc thay thế \n
             messageBubble.innerHTML = `<p>${message.replace(/\n/g, '<br>')}</p>`;
             messageWrapper.appendChild(messageBubble);
             chatMessages.appendChild(messageWrapper);
