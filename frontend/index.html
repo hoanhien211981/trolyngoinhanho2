@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trợ lý</title>
+    <title>Phụng Sự Viên Ảo - Ba La Mật</title>
     <link href="/dist/output.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,8 +55,8 @@
         
         <!-- Header -->
         <div class="text-center py-4 border-b border-stone-200 shadow-sm flex-shrink-0">
-            <h1 class="font-title text-2xl md:text-3xl font-bold text-amber-800">TRỢ LÝ</h1>
-            <p class="text-stone-500 text-sm mt-1">Trợ lý giải đáp</p>
+            <h1 class="font-title text-2xl md:text-3xl font-bold text-amber-800">Phụng Sự Viên Ảo "Ba La Mật"</h1>
+            <p class="text-stone-500 text-sm mt-1">Pháp Môn Tâm Linh 心靈法門 (nhomcongtu.pmtl.site)</p>
         </div>
 
         <!-- Khu vực tin nhắn -->
@@ -85,7 +85,7 @@
         // --- KẾT THÚC SỬA LỖI ---
 
         // === THÔNG TIN CẤU HÌNH QUAN TRỌNG ===
-        const BACKEND_API_URL = "https://trolyniemkinh.onrender.com";
+        const BACKEND_API_URL = "https://trolyngoinhanho2.onrender.com";
         const DEFAULT_DOCUMENT_URL = "https://gist.githubusercontent.com/kieunhi050595-star/ddecde18f83b77d06a117a9fcf349188/raw/dulieu.txt";
         let documentContext = "";
         // ===================================
@@ -196,7 +196,7 @@
                 let errorText = `Lỗi HTTP: ${response.status} ${response.statusText}`;
                 try {
                     const errorData = await response.json();
-                    errorText = `Lỗi từ server: ${errorData.error || response.statusText}`;
+                    errorText = `Đệ xin lỗi: ${errorData.error || response.statusText}`;
                 } catch (e) {
                     errorText = `Server trả về lỗi không phải JSON (status: ${response.status}). Vui lòng kiểm tra lại địa chỉ BACKEND_API_URL.`;
                 }
